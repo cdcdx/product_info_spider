@@ -39,9 +39,10 @@ def createDir(path):
 
 #提取描述url
 def descUrl(html):
-    reg = r"descUrl.*?location.protocol==='http:' \? '//(.*?)'.?:"
-    desurlre = re.compile(reg,re.I)
+    reg = r'{"descUrl":"(.*?)","httpsDescUrl'
+    desurlre = re.compile(reg, re.I)
     desurl = re.findall(desurlre , html)
+    #print desurl
     return desurl
 
 #提取所有图片imglist
@@ -59,7 +60,7 @@ def saveImgTo(imglist, path):
         splist = imgurl.split('.')
         filetype = splist[len(splist)-1]
         print "saving " + imgurl
-        imgurl = 'http:' + imgurl
+        #imgurl = 'http:' + imgurl
         print imgurl
         try:
             urllib.urlretrieve(imgurl , path + "/info-"+ str(imgIndex) + '.' + filetype )
@@ -71,7 +72,8 @@ def saveImgTo(imglist, path):
 #提取主图
 def getMainImg(html, path):
     createDir(path)
-    reg = r'auctionImages.*?\[(.*?)\]'
+    print html
+    reg = r'propertyPics.*?\[(.*?)\]'
     imgre = re.compile(reg,re.I)
     titleImg = re.findall(imgre , html)
     titleImg = titleImg[0]
@@ -115,7 +117,7 @@ def parse_html_info(html, savePath):
     output.close()
 
 #从一个淘宝页面，得到详情图片
-def getTaoBaoImg(url, savePath):
+def getTmallImg(url, savePath):
     html = getHtml(url)
     #print html
     #output = open( savePath+"/url-html.htm" , "w")
@@ -131,8 +133,8 @@ def getTaoBaoImg(url, savePath):
     
     print "----------------------------------------------------------"
     desurl = descUrl(html)
-    desurl = "http://" + desurl[0]
-    #print "desurl = " + desurl
+    desurl = "http:" + desurl[0]
+    print "desurl = " + desurl
     #得到淘贝详情html
     desHtml = getHtml(desurl)
     #print desHtml
@@ -196,7 +198,7 @@ def main():
     urls = urls.split('\n')
     print urls
 
-    savepath = "taobao-info"
+    savepath = "tmall-img"
     if len(sys.argv)>2 and sys.argv[2]:
         savepath = sys.argv[2]
     #print savepath
@@ -222,9 +224,10 @@ def main():
         #解析title
         #parse_title(url, savePath):
         html = getHtml(url)
+        #print(html)
         
         #解析shopId
-        PATTERN_shopId = r'data-shopid="(.*?)"></div>'
+        PATTERN_shopId = r'shopid="(.*?)" tmplid='
         pat = re.compile(PATTERN_shopId, re.S)
         shopId_value = pat.findall(html)[0]
         print(shopId_value)
@@ -245,14 +248,14 @@ def main():
         #print urlSavePath name="current_price" value= "
         '''
         #解析产品价格 current_price
-        PATTERN_price = r'name="current_price" value= "(.*?)"/>'
+        PATTERN_price = r'"reservePrice":"(.*?)","imgVedioPic'
         pat = re.compile(PATTERN_price,re.S)
         current_price = pat.findall(html)[0]
         print(current_price)
         
         #解析产品参数 attributes-list
         #PATTERN = r'<!-- attributes div start -->(.*?)</div>'
-        PATTERN_attributes = r'<ul class="attributes-list">(.*?)</ul>'
+        PATTERN_attributes = r'id="J_BrandAttr"></div>(.*?)</div>'
         pat = re.compile(PATTERN_attributes,re.S)
         attributes_list = pat.findall(html)[0]
         #print(attributes_list)
@@ -330,8 +333,8 @@ def main():
         print ''
         
         #GetImg
-        if url.find('taobao') != -1:
-            getTaoBaoImg(url, urlSavePath)
+        if url.find('tmall') != -1:
+            getTmallImg(url, urlSavePath)
         else:
             getOtherImg(url, urlSavePath)
         urlIndex += 1
